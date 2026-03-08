@@ -1,474 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>US Electricity Load Growth 2024–2030</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.2/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/recharts@2.10.3/umd/Recharts.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #fff; font-family: Inter, system-ui, sans-serif; }
-    button { font-family: Inter, system-ui, sans-serif; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>US Energy &amp; Data Center Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #ffffff;
+    color: #111827;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 56px 32px 80px;
+  }
+  .eyebrow {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: #1d6fa8; margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 26px; font-weight: 800; letter-spacing: -0.5px;
+    line-height: 1.2; margin-bottom: 16px;
+  }
+  .overview {
+    font-size: 13.5px; color: #4b5563; line-height: 1.7;
+    margin-bottom: 40px; border-left: 3px solid #e2e6ed;
+    padding-left: 16px;
+  }
+  .overview p + p { margin-top: 10px; }
+  h2 {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.7px; color: #9ca3af; margin-bottom: 14px;
+  }
+  .links { display: flex; flex-direction: column; gap: 12px; }
+  .link-card {
+    display: block; text-decoration: none; color: inherit;
+    border: 1px solid #e2e6ed; border-radius: 8px;
+    padding: 16px 20px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .link-card:hover {
+    border-color: #c5cdd8;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  .link-title {
+    font-size: 14px; font-weight: 700; margin-bottom: 4px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .link-title .arrow { color: #9ca3af; font-size: 16px; transition: transform 0.15s; }
+  .link-card:hover .arrow { transform: translateX(3px); }
+  .link-desc { font-size: 12.5px; color: #6b7280; line-height: 1.55; }
+  .link-card.blue .link-title { color: #1d6fa8; }
+  .link-card.orange .link-title { color: #ea580c; }
+  footer {
+    margin-top: 56px; font-size: 11px; color: #d1d5db;
+    border-top: 1px solid #f3f4f6; padding-top: 20px;
+  }
+</style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  Legend, ResponsiveContainer, ReferenceLine, Line, Customized,
-} = window.Recharts;
-const { useState } = React;
 
-const T = {
-  pageBg:      "#ffffff",
-  cardBg:      "#f8f9fb",
-  cardBorder:  "#e2e6ed",
-  chartBg:     "#f8f9fb",
-  gridLine:    "#e8ecf0",
-  axisLine:    "#d0d5dd",
-  axisTick:    "#111827",
-  labelMuted:  "#1f2937",
-  labelSub:    "#111827",
-  labelBody:   "#111827",
-  labelStrong: "#000000",
-  accentBlue:  "#1d6fa8",
-  accentOrange:"#d4530f",
-  bandHigh:    "#7c3aed",
-  bandLow:     "#6d28d9",
-  refLine:     "#cbd5e1",
-  refLabel:    "#374151",
-  toggleBg:    "#f1f4f8",
-  toggleBorder:"#d0d5dd",
-  chipOff:     "#f1f4f8",
-  chipOffText: "#374151",
-  divider:     "#e2e6ed",
-  warnBg:      "#fff7ed",
-  warnBorder:  "#fb923c",
-  warnText:    "#7c2d12",
-};
+<div class="eyebrow">US Energy Analysis · 2024–2030</div>
+<h1>Data Center Load Growth &amp; Geographic Concentration</h1>
 
-const AI_SHARE     = { 2024:0.35, 2025:0.40, 2026:0.47, 2027:0.54, 2028:0.60, 2029:0.63, 2030:0.65 };
-const DC_TOTAL_TWH = { 2024:176,  2025:225,  2026:292,  2027:373,  2028:455,  2029:535,  2030:606  };
-const DC_TOTAL_GW  = { 2024:25,   2025:32,   2026:41,   2027:52,   2028:63,   2029:72,   2030:80   };
-const YEARS = [2024,2025,2026,2027,2028,2029,2030];
+<div class="overview">
+  <p>AI and data center expansion is the dominant driver of US electricity demand through 2030,
+     accounting for roughly 55% of all incremental load growth. Nationally, data centers represent
+     ~4% of total US electricity. This significantly understates localized impacts.</p>
+  <p>Load is concentrated in a handful of states and counties. In Northern Virginia,
+     data centers already consume 27% of state electricity and are projected to reach 39–57%
+     by 2030. Eight states are projected to exceed 20% DC share by 2030 (EPRI, Feb 2026).
+     Infrastructure costs are being socialized across utility service territories far beyond
+     the host counties, driving rate increases for residential customers.</p>
+  <p>These two charts examine the demand surge from both angles: aggregate national load
+     growth by sector and the geographic concentration of data center loads through 2030.</p>
+</div>
 
-const twhData = YEARS.map((y) => {
-  const i=YEARS.indexOf(y), dc=DC_TOTAL_TWH[y], ai=AI_SHARE[y];
-  const res=y===2024?1550:1550+(y-2024)*8, com=y===2024?1300:1300+(y-2024)*5;
-  const ind=y===2024?1047:1047+(y-2024)*29, tra=[13,25,40,55,72,90,118][i];
-  const dcL=[176,200,248,305,370,425,480][i], dcH=[176,250,335,435,540,625,700][i];
-  return { year:y, Residential:res, "Commercial (ex-DC)":com,
-    "Non-AI Data Centers":+(dc*(1-ai)).toFixed(1), "AI Workloads":+(dc*ai).toFixed(1),
-    Industrial:ind, Transportation:tra,
-    totalLow:res+com+dcL+ind+tra, totalHigh:res+com+dcH+ind+tra };
-});
+<h2>Charts</h2>
+<div class="links">
 
-const gwData = YEARS.map((y) => {
-  const i=YEARS.indexOf(y), dc=DC_TOTAL_GW[y], ai=AI_SHARE[y];
-  const res=[193,195,197,199,201,203,205][i], com=[167,168,169,170,171,171,172][i];
-  const ind=[122,126,130,134,137,140,143][i], tra=[2,3,5,7,9,11,14][i];
-  const dcL=[25,28,35,43,52,60,67][i], dcH=[25,36,47,61,75,87,98][i];
-  return { year:y, Residential:res, "Commercial (ex-DC)":com,
-    "Non-AI Data Centers":+(dc*(1-ai)).toFixed(1), "AI Workloads":+(dc*ai).toFixed(1),
-    Industrial:ind, Transportation:tra,
-    totalLow:res+com+dcL+ind+tra, totalHigh:res+com+dcH+ind+tra };
-});
-
-const SEGMENTS = ["Residential","Commercial (ex-DC)","Non-AI Data Centers","AI Workloads","Industrial","Transportation"];
-const COLORS = {
-  Residential:           "#2563eb",
-  "Commercial (ex-DC)":  "#7c9bbf",
-  "Non-AI Data Centers": "#d97706",
-  "AI Workloads":        "#ea580c",
-  Industrial:            "#dc2626",
-  Transportation:        "#0891b2",
-};
-
-const makeIncremental = (data) => {
-  const base={};
-  SEGMENTS.forEach((s)=>(base[s]=data[0][s]));
-  return data.map((d)=>{
-    const row={year:d.year, totalLow:d.totalLow, totalHigh:d.totalHigh};
-    SEGMENTS.forEach((s)=>(row[s]=Math.max(0,+(d[s]-base[s]).toFixed(1))));
-    return row;
-  });
-};
-
-const fmt = (v,unit) => unit==="TWh"?`${(+v).toFixed(0)} TWh`:`${(+v).toFixed(1)} GW`;
-
-const SOURCE_NOTES = [
-  { label:"McKinsey Aug 2025 ★",     detail:"Primary DC/AI split. US DCs: 147 TWh (2023) → 606 TWh (2030). US peak: 25 GW (2024) → 80+ GW (2030). AI share triples 2025–2030 per Exhibit 2.", star:true },
-  { label:"EIA AEO 2025 / STEO",     detail:"Sectoral baselines: Residential ~1,550, Commercial ~1,480, Industrial ~1,047 TWh (2024)." },
-  { label:"LBNL 2024 DC Report",     detail:"176 TWh DCs (2023). Low/high band: 325–580 TWh by 2028. McKinsey 606 TWh (2030) is above LBNL mid (~550)." },
-  { label:"NERC LTRA 2025",          detail:"+224 GW summer peak over 10yr. 13/23 assessment areas at elevated/high risk." },
-  { label:"Grid Strategies Nov 2025",detail:"166 GW total US load growth by 2030; ~90 GW (54%) data centers; ~40 GW non-DC large industrial." },
-  { label:"IEA Electricity 2025",    detail:"US ~2% CAGR demand growth. EV STEPS ~120 TWh (2030, all vehicles)." },
-  { label:"Ember US Elec. 2025",     detail:"EVs = 13 TWh (2024). Transportation remains smallest sector through 2030." },
-  { label:"LBNL Large Load Nov 2025",detail:"Warns DC forecasts likely overestimated — only ~14% of queued capacity historically completes." },
-];
-
-const CustomTooltip = ({ active, payload, label, unit }) => {
-  if (!active || !payload || !payload.length) return null;
-  const total = payload.reduce((s,p)=>s+(p.value||0),0);
-  return (
-    <div style={{
-      background:"#fff", border:"1px solid #d0d5dd", borderRadius:8,
-      padding:"14px 18px", fontFamily:"Inter, system-ui, sans-serif",
-      fontSize:12, color:T.labelBody, minWidth:290,
-      boxShadow:"0 4px 20px rgba(0,0,0,0.12)",
-    }}>
-      <div style={{fontWeight:800,marginBottom:10,color:T.accentOrange,fontSize:14}}>{label}</div>
-      {[...payload].reverse().map((p)=>{
-        const pct=total>0?((p.value/total)*100).toFixed(1):"0.0";
-        return (
-          <div key={p.dataKey} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:20,marginBottom:5}}>
-            <span style={{display:"flex",alignItems:"center",gap:7,color:T.labelBody}}>
-              <span style={{display:"inline-block",width:9,height:9,borderRadius:2,background:p.fill,flexShrink:0}}/>
-              {p.dataKey}
-            </span>
-            <span style={{color:T.labelStrong,fontWeight:700,whiteSpace:"nowrap"}}>
-              {fmt(p.value,unit)}{" "}
-              <span style={{color:T.labelMuted,fontWeight:400}}>({pct}%)</span>
-            </span>
-          </div>
-        );
-      })}
-      <div style={{borderTop:`1px solid ${T.divider}`,marginTop:10,paddingTop:10,display:"flex",justifyContent:"space-between",fontWeight:800,color:T.labelStrong,fontSize:13}}>
-        <span>Total</span><span>{fmt(total,unit)}</span>
-      </div>
+  <a href="us_load_growth.html" class="link-card blue">
+    <div class="link-title">
+      US Electricity Demand Growth by Sector, 2024–2030
+      <span class="arrow">→</span>
     </div>
-  );
-};
+    <div class="link-desc">Stacked area chart of total US load growth across residential, commercial,
+      industrial, transportation, and data center sectors — with AI workloads split out separately.
+      Toggles for TWh vs. GW, absolute vs. incremental, and uncertainty bands.</div>
+  </a>
 
-function App() {
-  const [view,       setView]       = useState("absolute");
-  const [metric,     setMetric]     = useState("twh");
-  const [showBand,   setShowBand]   = useState(true);
-  const [activeSegs, setActiveSegs] = useState(new Set(SEGMENTS));
-
-  const toggleSeg = (seg) => {
-    setActiveSegs((prev) => {
-      if (prev.has(seg) && prev.size===1) return prev;
-      const next=new Set(prev);
-      next.has(seg)?next.delete(seg):next.add(seg);
-      return next;
-    });
-  };
-
-  const rawData     = metric==="twh"?twhData:gwData;
-  const unit        = metric==="twh"?"TWh":"GW";
-  const baseData    = view==="absolute"?rawData:makeIncremental(rawData);
-  const visibleSegs = SEGMENTS.filter((s)=>activeSegs.has(s));
-
-  const stackedMaxes = baseData.map((d)=>visibleSegs.reduce((sum,s)=>sum+(d[s]||0),0));
-  const dataMax = Math.max(...stackedMaxes);
-  const dataMin = view==="absolute"
-    ? Math.min(...baseData.map((d)=>visibleSegs.reduce((sum,s)=>sum+(d[s]||0),0)))
-    : 0;
-  const pad = (dataMax-dataMin)*0.08;
-  const yDomain = [
-    view==="absolute"?Math.floor((dataMin-pad)/50)*50:0,
-    Math.ceil((dataMax+pad)/50)*50,
-  ];
-
-  const last=rawData[rawData.length-1], first=rawData[0];
-  const totalLast   = SEGMENTS.reduce((s,k)=>s+last[k],0);
-  const dcTotalLast = last["Non-AI Data Centers"]+last["AI Workloads"];
-  const allGrowth   = SEGMENTS.reduce((s,k)=>s+(last[k]-first[k]),0);
-  const dcGrowth    = dcTotalLast-(first["Non-AI Data Centers"]+first["AI Workloads"]);
-  const aiGrowth    = last["AI Workloads"]-first["AI Workloads"];
-
-  const callouts = [
-    { label:"AI Workloads (2030)",        val:fmt(last["AI Workloads"],unit),  pct:`${((last["AI Workloads"]/totalLast)*100).toFixed(1)}%`,  note:"of 2030 total mid-case",                        src:"McKinsey Aug 2025",          color:COLORS["AI Workloads"] },
-    { label:"AI share of DC load (2030)", val:fmt(last["AI Workloads"],unit),  pct:`${((last["AI Workloads"]/dcTotalLast)*100).toFixed(0)}%`, note:"of all DC load by 2030 (was 35% in 2024)",      src:"McKinsey Exhibit 2",         color:COLORS["AI Workloads"] },
-    { label:"AI share of all growth",     val:fmt(aiGrowth,unit),              pct:`${((aiGrowth/allGrowth)*100).toFixed(0)}%`,               note:"of all incremental demand 2024→2030",            src:"McKinsey / Grid Strategies", color:COLORS["AI Workloads"] },
-    { label:"Total DC load (2030)",       val:fmt(dcTotalLast,unit),           pct:`${((dcTotalLast/totalLast)*100).toFixed(1)}%`,            note:"of 2030 total; 25 GW (2024) → 80 GW (2030)",    src:"McKinsey Exhibits 1 & 2",    color:COLORS["Non-AI Data Centers"] },
-    { label:"DC share of all growth",     val:fmt(dcGrowth,unit),              pct:`${((dcGrowth/allGrowth)*100).toFixed(0)}%`,               note:"of all incremental demand 2024→2030",            src:"Grid Strategies ~54%",       color:COLORS["Non-AI Data Centers"] },
-    { label:"Transportation (2030)",      val:fmt(last["Transportation"],unit), pct:`${((last["Transportation"]/totalLast)*100).toFixed(1)}%`, note:"of 2030 total — still smallest sector",         src:"IEA STEPS / Ember 2025",     color:COLORS["Transportation"] },
-  ];
-
-  const Btn = ({ active, onClick, children, activeColor }) => (
-    <button onClick={onClick} style={{
-      padding:"7px 16px", border:"none", cursor:"pointer",
-      fontFamily:"Inter, system-ui, sans-serif", fontSize:12, fontWeight:700,
-      letterSpacing:"0.05em",
-      background: active ? activeColor : "transparent",
-      color: active ? "#fff" : T.labelSub,
-      transition:"all 0.15s",
-    }}>{children}</button>
-  );
-
-  const CHART_H=420, TOP_PAD=8;
-  const last2030  = baseData[baseData.length-1];
-  const total2030 = visibleSegs.reduce((s,seg)=>s+(last2030[seg]||0),0);
-
-  // Recharts <Customized> component receives the full chart internals including xScale/yScale
-  const SegmentLabels = (props) => {
-    const { xAxisMap, yAxisMap } = props;
-    if (!xAxisMap || !yAxisMap) return null;
-    const xAxis = Object.values(xAxisMap)[0];
-    const yAxis = Object.values(yAxisMap)[0];
-    if (!xAxis || !yAxis || !xAxis.scale || !yAxis.scale) return null;
-
-    const xScale = xAxis.scale;
-    const yScale = yAxis.scale;
-    const cx = xScale(2030);
-
-    let cumulative = 0;
-    return (
-      <g>
-        {visibleSegs.map((seg) => {
-          const val = last2030[seg] || 0;
-          const pct = total2030 > 0 ? val / total2030 * 100 : 0;
-          const bottom = cumulative;
-          cumulative += val;
-          const top = cumulative;
-          if (pct < 0.3) return null;
-          const cyTop = yScale(top);
-          const cyBot = yScale(bottom);
-          const bandPx = Math.abs(cyBot - cyTop);
-          const midY = (cyTop + cyBot) / 2;
-          const label = pct.toFixed(pct < 5 ? 1 : 0) + '%';
-          const fontSize = bandPx >= 20 ? 11 : 9;
-          return (
-            <g key={seg}>
-              <line x1={cx+3} y1={midY} x2={cx+15} y2={midY} stroke={COLORS[seg]} strokeOpacity={0.6} strokeWidth={1}/>
-              <text
-                x={cx+18} y={midY}
-                dominantBaseline="middle"
-                fill={COLORS[seg]}
-                fontSize={fontSize}
-                fontWeight={700}
-                fontFamily="Inter, system-ui, sans-serif"
-              >{label}</text>
-            </g>
-          );
-        })}
-      </g>
-    );
-  };
-
-  return (
-    <div style={{ background:T.pageBg, minHeight:"100vh", fontFamily:"Inter, system-ui, sans-serif", color:T.labelBody, padding:"28px 32px", maxWidth:1100, margin:"0 auto" }}>
-
-      {/* Header */}
-      <div style={{ marginBottom:24 }}>
-        <div style={{ fontSize:11, letterSpacing:"0.22em", color:T.accentOrange, textTransform:"uppercase", marginBottom:5, fontWeight:700 }}>
-          US Electricity Demand · Sector Forecast 2024–2030
-        </div>
-        <h1 style={{ margin:0, fontSize:26, fontWeight:800, color:T.labelStrong, letterSpacing:"-0.5px", lineHeight:1.2 }}>
-          Where Is Load Growth <span style={{ color:T.accentOrange }}>Actually</span> Coming From?
-        </h1>
-        <p style={{ margin:"8px 0 0", fontSize:12, color:T.labelSub, maxWidth:680, lineHeight:1.65 }}>
-          AI vs. non-AI data center split per McKinsey Aug 2025 (Exhibits 1 &amp; 2) ·
-          AI share of DC load rises from 35% (2024) → 65% (2030) ·
-          US DC total: 176 TWh / 25 GW (2024) → 606 TWh / 80 GW (2030) ·
-          Other sectors: EIA AEO 2025, NERC LTRA 2025, Grid Strategies Nov 2025, IEA 2025
-        </p>
-      </div>
-
-      {/* Controls */}
-      <div style={{ display:"flex", gap:10, marginBottom:13, flexWrap:"wrap", alignItems:"center" }}>
-        <div style={{ background:T.toggleBg, borderRadius:8, border:`1px solid ${T.toggleBorder}`, display:"flex", overflow:"hidden" }}>
-          <Btn active={metric==="twh"} onClick={()=>setMetric("twh")} activeColor={T.accentBlue}>Energy (TWh)</Btn>
-          <Btn active={metric==="gw"}  onClick={()=>setMetric("gw")}  activeColor={T.accentBlue}>Peak Load (GW)</Btn>
-        </div>
-        <div style={{ background:T.toggleBg, borderRadius:8, border:`1px solid ${T.toggleBorder}`, display:"flex", overflow:"hidden" }}>
-          <Btn active={view==="absolute"}    onClick={()=>setView("absolute")}    activeColor="#374151">Absolute</Btn>
-          <Btn active={view==="incremental"} onClick={()=>setView("incremental")} activeColor="#374151">Incremental Growth</Btn>
-        </div>
-        <button onClick={()=>setShowBand(!showBand)} style={{
-          padding:"7px 14px", borderRadius:8, cursor:"pointer",
-          fontFamily:"Inter, system-ui, sans-serif", fontSize:12, fontWeight:700,
-          border:`1px solid ${showBand?"#7c3aed":T.toggleBorder}`,
-          background: showBand?"#f5f3ff":T.toggleBg,
-          color: showBand?"#7c3aed":T.labelSub, transition:"all 0.15s",
-        }}>
-          {showBand?"▼":"▷"} Uncertainty Band
-        </button>
-      </div>
-
-      {/* Sector chips */}
-      <div style={{ display:"flex", gap:7, marginBottom:18, flexWrap:"wrap", alignItems:"center" }}>
-        <span style={{ fontSize:10, color:T.labelMuted, textTransform:"uppercase", letterSpacing:"0.1em", marginRight:2, flexShrink:0 }}>Sectors:</span>
-        {SEGMENTS.map((seg)=>{
-          const on=activeSegs.has(seg);
-          return (
-            <button key={seg} onClick={()=>toggleSeg(seg)} style={{
-              display:"flex", alignItems:"center", gap:6, padding:"4px 11px",
-              border:`1px solid ${on?COLORS[seg]:T.toggleBorder}`,
-              borderRadius:20, cursor:"pointer",
-              fontFamily:"Inter, system-ui, sans-serif", fontSize:11, fontWeight:600,
-              background: on?`${COLORS[seg]}18`:T.chipOff,
-              color: on?COLORS[seg]:T.chipOffText,
-              transition:"all 0.15s", opacity: on?1:0.55,
-            }}>
-              <span style={{ display:"inline-block", width:8, height:8, borderRadius:2, background:on?COLORS[seg]:T.chipOffText, flexShrink:0 }}/>
-              {seg}
-            </button>
-          );
-        })}
-        <button onClick={()=>setActiveSegs(new Set(SEGMENTS))} style={{
-          padding:"4px 10px", border:`1px solid ${T.toggleBorder}`, borderRadius:20,
-          cursor:"pointer", fontFamily:"Inter, system-ui, sans-serif", fontSize:10,
-          background:T.chipOff, color:T.labelSub,
-        }}>All</button>
-        <button onClick={()=>setActiveSegs(new Set(["Non-AI Data Centers","AI Workloads"]))} style={{
-          padding:"4px 10px", border:`1px solid ${T.toggleBorder}`, borderRadius:20,
-          cursor:"pointer", fontFamily:"Inter, system-ui, sans-serif", fontSize:10,
-          background:T.chipOff, color:T.labelSub,
-        }}>DC only</button>
-      </div>
-
-      {/* Chart */}
-      <div style={{ background:T.chartBg, borderRadius:12, border:`1px solid ${T.cardBorder}`, padding:"22px 8px 12px", marginBottom:22 }}>
-        <div style={{ paddingLeft:16, marginBottom:6, fontSize:10, color:T.labelMuted, letterSpacing:"0.12em", textTransform:"uppercase" }}>
-          {metric==="twh"?"Annual Energy (TWh)":"Summer Peak Demand (GW)"}
-          {view==="incremental"?" · Incremental above 2024 baseline":" · Mid scenario"}
-          {visibleSegs.length<SEGMENTS.length&&(
-            <span style={{ color:T.accentOrange, marginLeft:8 }}>· {visibleSegs.length}/{SEGMENTS.length} sectors shown</span>
-          )}
-        </div>
-        <div style={{ position:"relative" }}>
-          <ResponsiveContainer width="100%" height={CHART_H}>
-            <AreaChart data={baseData} margin={{ top:TOP_PAD, right:90, left:10, bottom:0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.gridLine} vertical={false}/>
-              <XAxis dataKey="year"
-                tick={{ fill:T.axisTick, fontSize:12, fontFamily:"Inter, system-ui, sans-serif" }}
-                tickLine={false} axisLine={{ stroke:T.axisLine }}/>
-              <YAxis domain={yDomain}
-                tick={{ fill:T.axisTick, fontSize:11, fontFamily:"Inter, system-ui, sans-serif" }}
-                tickLine={false} axisLine={false} width={54}
-                tickFormatter={(v)=>v>=1000?`${(v/1000).toFixed(1)}k`:`${v}`}/>
-              <Tooltip content={<CustomTooltip unit={unit}/>}/>
-              <Legend wrapperStyle={{ paddingTop:16, fontFamily:"Inter, system-ui, sans-serif", fontSize:11, color:T.labelBody }} iconType="square" iconSize={10}/>
-              <ReferenceLine x={2025} stroke={T.refLine} strokeDasharray="5 4"
-                label={{ value:"← Actual   Forecast →", position:"insideTopLeft", fill:T.refLabel, fontSize:10, fontFamily:"Inter, system-ui, sans-serif" }}/>
-              {SEGMENTS.map((seg)=>
-                activeSegs.has(seg)?(
-                  <Area key={seg} type="monotone" dataKey={seg} stackId="1"
-                    stroke={COLORS[seg]} fill={COLORS[seg]} fillOpacity={0.75} strokeWidth={0.5}
-                    dot={false} activeDot={false}/>
-                ):null
-              )}
-              <Customized component={SegmentLabels}/>
-              {showBand&&(
-                <React.Fragment>
-                  <Line type="monotone" dataKey="totalHigh" stroke={T.bandHigh} strokeWidth={1.5} strokeDasharray="7 4" dot={false} legendType="none"/>
-                  <Line type="monotone" dataKey="totalLow"  stroke={T.bandLow}  strokeWidth={1.5} strokeDasharray="7 4" dot={false} legendType="none"/>
-                </React.Fragment>
-              )}
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        {showBand&&(
-          <div style={{ paddingLeft:22, paddingTop:5, fontSize:10, color:T.labelMuted, display:"flex", gap:18, flexWrap:"wrap" }}>
-            <span style={{ color:T.bandHigh }}>— — High (McKinsey high + LBNL high DCs)</span>
-            <span style={{ color:T.bandLow  }}>— — Low (LBNL low DC scenario, EV STEPS floor)</span>
-          </div>
-        )}
-      </div>
-
-      {/* Callout tiles */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(210px, 1fr))", gap:10, marginBottom:22 }}>
-        {callouts.map((c)=>(
-          <div key={c.label} style={{
-            background:T.cardBg, border:`1px solid ${T.cardBorder}`,
-            borderLeft:`3px solid ${c.color}`, borderRadius:8, padding:"13px 16px",
-          }}>
-            <div style={{ fontSize:10, color:T.labelMuted, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>{c.label}</div>
-            <div style={{ fontSize:24, fontWeight:800, color:c.color, lineHeight:1 }}>{c.pct}</div>
-            <div style={{ fontSize:12, color:T.labelSub, marginTop:3 }}>{c.val}</div>
-            <div style={{ fontSize:10, color:T.labelMuted, marginTop:5, lineHeight:1.5 }}>
-              {c.note}<br/><em style={{ color:T.labelMuted }}>{c.src}</em>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* McKinsey note */}
-      <div style={{
-        background:T.warnBg, border:`1px solid ${T.warnBorder}40`, borderLeft:`3px solid ${T.warnBorder}`,
-        borderRadius:10, padding:"15px 20px", marginBottom:16,
-      }}>
-        <div style={{ fontSize:10, letterSpacing:"0.2em", color:T.accentOrange, textTransform:"uppercase", fontWeight:700, marginBottom:10 }}>
-          McKinsey AI / DC Split Methodology (Aug 2025)
-        </div>
-        <div style={{ fontSize:11, color:T.labelBody, lineHeight:1.7, maxWidth:800 }}>
-          McKinsey's Exhibit 1 anchors US DC energy: <strong>147 TWh (2023) → 606 TWh (2030)</strong>, implying
-          a ~22% CAGR — above LBNL's mid-case (~550 TWh) but consistent with the upper bound.
-          Exhibit 2 shows AI workload capacity additions expected to <strong>more than triple 2025–2030</strong>,
-          reaching <strong>124 GW of incremental AI capacity per year globally by 2030</strong>.
-          The AI share applied here (35% in 2024 → 65% in 2030) applies McKinsey's global AI/non-AI
-          ratio to the US figure, consistent with LBNL's GPU server growth data.
-        </div>
-        <div style={{
-          marginTop:11, padding:"9px 12px",
-          background:"rgba(251,146,60,0.08)", borderLeft:`2px solid ${T.warnBorder}`,
-          borderRadius:4, fontSize:11, color:T.warnText, lineHeight:1.65,
-        }}>
-          <strong>Key tension:</strong> McKinsey's 606 TWh (2030) implies the high-end scenario.
-          Distilled/distributed training models (DeepSeek-style efficiency gains) <em>could reduce per-inference compute</em>,
-          creating significant downside to the AI Workloads segment post-2026 — the largest forecast uncertainty in this chart.
-        </div>
-      </div>
-
-      {/* Sector definitions */}
-      <div style={{ background:T.cardBg, border:`1px solid ${T.cardBorder}`, borderRadius:10, padding:"15px 20px", marginBottom:14 }}>
-        <div style={{ fontSize:10, letterSpacing:"0.2em", color:T.accentBlue, textTransform:"uppercase", fontWeight:700, marginBottom:11 }}>
-          Sector Definitions
-        </div>
-        <div style={{ display:"grid", gap:7 }}>
-          {[
-            { seg:"Residential",          note:"EIA residential. ~1,550 TWh (2024). Net ~+0.1%/yr; heat pump electrification adds ~+45 TWh cumulative by 2030." },
-            { seg:"Commercial (ex-DC)",    note:"EIA commercial minus DC load (~1,300 TWh net, 2024). Near-flat: efficiency offsets new floor space growth." },
-            { seg:"Non-AI Data Centers",   note:"Legacy cloud, enterprise colo, content delivery. McKinsey: 65% of 2024 DC load → 35% by 2030 as AI dominates new builds." },
-            { seg:"AI Workloads",          note:"GPU-accelerated training and inference. McKinsey Exhibit 2: AI capacity additions reach 124 GW/yr globally by 2030. US AI DC: ~62 TWh (2024) → ~394 TWh (2030)." },
-            { seg:"Industrial",            note:"EIA industrial baseline + onshoring (CHIPS Act fabs, battery gigafactories, green steel, electrolytic H₂). Grid Strategies: ~40 GW non-DC large loads by 2030." },
-            { seg:"Transportation",        note:"EVs only: light-duty + Class 6-8 trucks + buses. Ember: 13 TWh (2024). IEA STEPS ~120 TWh (2030). Peak GW impact muted — predominantly overnight charging." },
-          ].map((r)=>(
-            <div key={r.seg} style={{ display:"flex", gap:12, fontSize:11, lineHeight:1.55 }}>
-              <span style={{ display:"flex", alignItems:"flex-start", gap:7, minWidth:190, fontWeight:700, color:COLORS[r.seg], paddingTop:1, flexShrink:0 }}>
-                <span style={{ display:"inline-block", width:8, height:8, borderRadius:2, background:COLORS[r.seg], marginTop:3, flexShrink:0 }}/>
-                {r.seg}
-              </span>
-              <span style={{ color:T.labelSub }}>{r.note}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Sources */}
-      <div style={{ display:"grid", gap:5, marginBottom:14 }}>
-        {SOURCE_NOTES.map((s)=>(
-          <div key={s.label} style={{ display:"flex", gap:12, fontSize:10, lineHeight:1.5 }}>
-            <span style={{ color:s.star?T.accentOrange:T.accentBlue, minWidth:200, fontWeight:700, flexShrink:0 }}>{s.label}</span>
-            <span style={{ color:T.labelMuted }}>{s.detail}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Color legend */}
-      <div style={{ display:"flex", gap:16, flexWrap:"wrap", fontSize:10, color:T.labelMuted, paddingTop:10, borderTop:`1px solid ${T.divider}` }}>
-        {Object.entries(COLORS).map(([k,v])=>(
-          <span key={k} style={{ display:"flex", alignItems:"center", gap:5 }}>
-            <span style={{ display:"inline-block", width:10, height:10, background:v, borderRadius:2 }}/>
-            {k}
-          </span>
-        ))}
-      </div>
+  <a href="dc_load_map.html" class="link-card orange">
+    <div class="link-title">
+      US Data Center Load Concentration Map
+      <span class="arrow">→</span>
     </div>
-  );
-}
+    <div class="link-desc">Map of data center share of state electricity consumption, with
+      proportional bubbles for 18 major metro clusters. Toggle between 2024 actual and 2030
+      projections; hover any state or cluster for details.</div>
+  </a>
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
-</script>
+</div>
+
+<footer>
+  Sources: EPRI Powering Intelligence 2026; LBNL 2024 US Data Center Energy Usage Report;
+  McKinsey Aug 2025; 451 Research / S&amp;P Global Feb 2026; ERCOT LTLF Apr 2025; EIA AEO 2025.
+</footer>
+
 </body>
 </html>
