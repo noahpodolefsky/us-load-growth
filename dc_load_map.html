@@ -102,9 +102,20 @@
   #tooltip .tt-note { font-size: 11px; color: #6b7280; margin-top: 5px; }
 
   .source { margin-top: 14px; font-size: 10.5px; color: var(--subtle); line-height: 1.5; }
+  .home-link {
+    position: fixed; top: 14px; right: 20px; z-index: 9999;
+    font-family: var(--font); font-size: 12px; font-weight: 600;
+    color: #4b5563; text-decoration: none;
+    background: rgba(255,255,255,0.92); border: 1px solid #e2e6ed;
+    border-radius: 6px; padding: 5px 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .home-link:hover { color: #1d6fa8; border-color: #c5cdd8; }
 </style>
 </head>
 <body>
+<a href="index.html" class="home-link">← Home</a>
 
 <div class="header">
   <h1>US Data Center Load Concentration</h1>
