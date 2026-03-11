@@ -338,7 +338,10 @@ function drawAnnotations() {
   svg.selectAll(".ann").remove();
   const g = svg.append("g").attr("class","ann");
 
-  function box(lx, ly, bx, by, bw, bh, fill, stroke, lines) {
+  function box(lx, ly, bx, by, bw, fill, stroke, lines) {
+    // Auto-size the rect to fit all text lines
+    const PAD_TOP = 7, PAD_BOT = 7, PAD_X = 9, LINE_H = 14;
+    const bh = PAD_TOP + lines.length * LINE_H + PAD_BOT;
     // Connect anchor to nearest box edge
     const ex = Math.max(bx, Math.min(bx+bw, lx));
     const ey = Math.max(by, Math.min(by+bh, ly));
@@ -346,10 +349,10 @@ function drawAnnotations() {
       .attr("stroke",stroke).attr("stroke-width",1.5).attr("stroke-dasharray","4,2");
     g.append("rect").attr("x",bx).attr("y",by).attr("width",bw).attr("height",bh)
       .attr("rx",5).attr("fill",fill).attr("stroke",stroke).attr("stroke-width",1.2);
-    lines.forEach(([txt, dy, bold, color]) => {
-      g.append("text").attr("x",bx+8).attr("y",by+dy)
+    lines.forEach(([txt, _dy, bold, color], i) => {
+      g.append("text").attr("x",bx+PAD_X).attr("y",by+PAD_TOP+(i+0.88)*LINE_H+2)
         .attr("font-family","Inter,sans-serif")
-        .attr("font-size", bold ? "11" : "10")
+        .attr("font-size", bold ? "11px" : "10px")
         .attr("font-weight", bold ? "700" : "400")
         .attr("fill", color).text(txt);
     });
@@ -359,7 +362,7 @@ function drawAnnotations() {
 
   // N. Virginia — east of NC
   const nv = projection([-77.45, 38.95]);
-  if (nv) box(nv[0]+10, nv[1]+8, 790, 360, 164, 60,
+  if (nv) box(nv[0]+10, nv[1]+8, 728, 355, 225,
     is30 ? "#fef2f2" : "#fff7ed",
     is30 ? "#f87171" : "#fb923c",
     is30 ? [
@@ -376,7 +379,7 @@ function drawAnnotations() {
 
   // Santa Clara — left of CA
   const sv = projection([-121.96, 37.35]);
-  if (sv) box(sv[0]-10, sv[1], 18, 300, 158, 48,
+  if (sv) box(sv[0]-10, sv[1], 18, 295, 225,
     "#eff6ff","#93c5fd",
     is30 ? [
       ["Santa Clara Co., CA",             15, true,  "#1e3a5f"],
@@ -390,7 +393,7 @@ function drawAnnotations() {
 
   // Oregon — northern Idaho area
   const or = projection([-122.67, 45.52]);
-  if (or) box(or[0]+12, or[1], 185, 42, 166, 48,
+  if (or) box(or[0]+12, or[1], 185, 42, 250,
     "#f5f3ff","#a78bfa",
     is30 ? [
       ["Oregon: >20% projected by 2030",      15, true,  "#3b0764"],
@@ -404,7 +407,7 @@ function drawAnnotations() {
 
   // Iowa / Nebraska
   const ia = projection([-94.8, 41.8]);
-  if (ia) box(ia[0], ia[1]-6, ia[0]-74, ia[1]-72, 168, 32,
+  if (ia) box(ia[0], ia[1]-6, ia[0]-105, ia[1]-62, 232,
     "#f0fdf4","#86efac",
     is30 ? [
       ["Iowa & Nebraska: both >20% by 2030",    14, true,  "#14532d"],
